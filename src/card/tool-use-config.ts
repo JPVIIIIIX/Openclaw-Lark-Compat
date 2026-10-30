@@ -1,0 +1,81 @@
+/**
+ * Copyright (c) 2026 ByteDance Ltd. and/or its affiliates
+ * SPDX-License-Identifier: MIT
+ *
+ * Resolution logic for Feishu tool-use display.
+ *
+ * The source of truth is OpenClaw's effective verbose state:
+ * inline `/verbose` override > session store override > config default.
+ * Feishu channel config only retains UI-level detail (`showFullPaths`).
+ */
+
+import type { OpenClawConfig } from 'openclaw/plugin-sdk/core';
+import { readFeishuSessionEntry } from '../core/session-entry';
+import type { FeishuConfig } from '../core/types';
+
+export type ToolUseMode = 'off' | 'on' | 'full';
+
+export interface ToolUseDisplayConfig {
+  mode: ToolUseMode;
+  showToolUse: boolean;
+  showToolResultDetails: boolean;
+  showFullPaths: boolean;
+}
+
+export async function resolveToolUseDisplayConfig(params: {
+  cfg: OpenClawConfig;
+  feishuCfg: FeishuConfig | undefined;
+  agentId: string;
+  sessionKey: string;
+  body?: string;
+}): Promise<ToolUseDisplayConfig> {
+  const mode = await resolveEffectiveVerboseMode(params);
+  return {
+    mode,
+    showToolUse: mode !== 'off',
+    showToolResultDetails: mode === 'full',
+    showFullPaths: params.feishuCfg?.toolUseDisplay?.showFullPaths === true,
+  };
+}
+
+async function resolveEffectiveVerboseMode(params: {
+  cfg: OpenClawConfig;
+  agentId: string;
+  sessionKey: string;
+  body?: string;
+}): Promise<ToolUseMode> {
+  return (
+    extractInlineVerboseMode(params.body) ??
+    (await resolveSessionVerboseMode(params.cfg, params.sessionKey, params.agentId)) ??
+    normalizeToolUseMode(params.cfg.agents?.defaults?.verboseDefault) ??
+    'off'
+  );
+}
+
+async function resolveSessionVerboseMode(
+  cfg: OpenClawConfig,
+  sessionKey: string,
+  agentId: string,
+): Promise<ToolUseMode | undefined> {
+  const entry = await readFeishuSessionEntry(cfg, agentId, sessionKey);
+  return normalizeToolUseMode(entry?.verboseLevel);
+}
+
+function extractInlineVerboseMode(body?: string): ToolUseMode | undefined {
+  if (!body) return undefined;
+  const matches = body.matchAll(/(?:^|\s)\/(?:verbose|v)(?::|\s+)(on|off|full)\b/gi);
+  let last: ToolUseMode | undefined;
+  for (const match of matches) {
+    last = normalizeToolUseMode(match[1]);
+  }
+  return last;
+}
+
+function normalizeToolUseMode(value: unknown): ToolUseMode | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'off' || normalized === 'on' || normalized === 'full') {
+    return normalized;
+  }
+  return undefined;
+}
