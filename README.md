@@ -13,9 +13,9 @@ This project adapts the [official Lark/Feishu OpenClaw plugin](https://github.co
 
 - Validated host: **OpenClaw 2026.10.9**, running on **Node.js 26.12.1**. Other host versions have not been validated.
 - Based on official commit [`dde0be3`](https://github.com/larksuite/openclaw-lark/commit/dde0be3680d6fd5443cab426c8f4b3216266346a). The authorization migration references [upstream PR #638](https://github.com/larksuite/openclaw-lark/pull/638).
-- Local checks: 450 passing tests; type checking, formatting, and build pass; ESLint reports no errors.
+- Local checks: 456 passing tests; type checking, formatting, and build pass; ESLint reports no errors.
 - 5,120 authorization cases match the previous host implementation. Isolated registration covers 39 tools and 4 chat commands with zero network attempts.
-- **Live Feishu messaging, card updates, and OAuth have not yet been verified end to end.** The features below describe upstream capabilities; current-host end-to-end acceptance remains pending.
+- Live acceptance on 2026-10-30 passed for DM messaging, model-driven streaming cards, OAuth, document create/read/append, and Bitable record CRUD. See [acceptance scope and limitations](./ACCEPTANCE.md). Other features and host versions remain unverified.
 
 ## Features
 
@@ -80,6 +80,21 @@ pnpm build
 The entry point is `dist/index.mjs`. No npm release is published. `private: true` prevents accidental npm publication; it does not restrict the public GitHub source. Back up the host program, configuration, state databases, and plugins before testing local plugin loading and real bot traffic in an isolated environment.
 
 The upstream `bin/openclaw-lark.js` wrapper invokes the official Feishu installation tools. Running it or `npx @larksuite/openclaw-lark install` does not install this repository's compatibility build.
+
+## Streaming replies on OpenClaw 2026.10.9
+
+In the isolated host configuration, explicitly set:
+
+```json
+{
+  "messages": { "visibleReplies": "automatic" },
+  "channels": { "feishu": { "replyMode": "streaming", "streaming": true } }
+}
+```
+
+Merge these settings into your existing configuration; do not replace credentials or access policies. `messages.visibleReplies` is a host-wide setting and can affect other channels. A harness using `message_tool` delivery sends a complete message through the message tool and bypasses the plugin's streaming reply dispatcher. `automatic` allows normal model replies to update the white card attached to the source message. Explicit message-tool sends are still separate sends.
+
+If the model cannot connect, verify its authentication and network access independently. This machine needed its existing proxy for the model endpoint; proxy addresses and credentials are environment-specific and are not shipped here.
 
 ## Usage Guide
 

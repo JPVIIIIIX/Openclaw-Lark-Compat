@@ -396,3 +396,14 @@ export function buildAuthIdentityMismatchCard(brand?: LarkBrand): Record<string,
     },
   };
 }
+
+/** Identity lookup failed; do not blame the user for an unverified mismatch. */
+export function buildAuthIdentityUnavailableCard(): Record<string, unknown> {
+  const card = buildAuthFailedCard('identity_unavailable');
+  const zh =
+    '暂时无法核验授权账号（接口限流或网络异常）。本次授权未保存，请稍后重试。这不表示操作账号与发起账号不一致。';
+  const en =
+    'Unable to verify the authorizing account due to a temporary API or network error. Authorization was not saved. Please retry later; this does not establish an account mismatch.';
+  card.body = { elements: [{ tag: 'markdown', content: en, i18n_content: i18nContent(zh, en) }] };
+  return card;
+}

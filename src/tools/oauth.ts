@@ -34,8 +34,15 @@ import { type StoredUAToken, getStoredToken, setStoredToken, tokenStatus } from 
 import { revokeUAT } from '../core/uat-client';
 import { createCardEntity, sendCardByCardId, updateCardKitCardForAuth } from '../card/cardkit';
 import { dispatchSyntheticTextMessage } from '../messaging/inbound/synthetic-message';
-import { buildAuthCard, buildAuthFailedCard, buildAuthIdentityMismatchCard, buildAuthSuccessCard } from './oauth-cards';
+import {
+  buildAuthCard,
+  buildAuthFailedCard,
+  buildAuthIdentityMismatchCard,
+  buildAuthIdentityUnavailableCard,
+  buildAuthSuccessCard,
+} from './oauth-cards';
 import { formatToolResult, registerTool } from './helpers';
+import { verifyTokenIdentity } from './oauth-identity';
 
 const json = formatToolResult;
 
@@ -83,52 +90,6 @@ interface PendingFlow {
 }
 
 const pendingFlows = new Map<string, PendingFlow>();
-
-// ---------------------------------------------------------------------------
-// Identity verification after Device Flow
-// ---------------------------------------------------------------------------
-
-/**
- * 使用刚获取的 UAT 调用 /authen/v1/user_info，
- * 验证实际完成 OAuth 授权的用户 open_id 是否与预期的 senderOpenId 一致。
- *
- * 防止群聊中其他用户点击授权链接后，错误的 UAT 被绑定到 owner 的身份。
- */
-async function verifyTokenIdentity(
-  brand: string,
-  accessToken: string,
-  expectedOpenId: string,
-): Promise<{ valid: boolean; actualOpenId?: string }> {
-  const domain = brand === 'lark' ? 'https://open.larksuite.com' : 'https://open.feishu.cn';
-  const url = `${domain}/open-apis/authen/v1/user_info`;
-
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const data = (await res.json()) as {
-      code?: number;
-      msg?: string;
-      data?: { open_id?: string };
-    };
-    if (data.code !== 0) {
-      log.warn(`user_info API error: code=${data.code}, msg=${data.msg}`);
-      return { valid: false };
-    }
-    const actualOpenId = data.data?.open_id;
-    if (!actualOpenId) {
-      log.warn('user_info API returned no open_id');
-      return { valid: false };
-    }
-    return {
-      valid: actualOpenId === expectedOpenId,
-      actualOpenId,
-    };
-  } catch (err) {
-    log.warn(`identity verification request failed: ${err}`);
-    return { valid: false };
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Registration
@@ -551,14 +512,17 @@ export async function executeAuthorize(
         const identity = await verifyTokenIdentity(brand, result.token.accessToken, senderOpenId);
         if (!identity.valid) {
           log.warn(
-            `identity mismatch! expected=${senderOpenId}, ` +
+            `identity verification ${identity.reason}: expected=${senderOpenId}, ` +
               `actual=${identity.actualOpenId ?? 'unknown'}, cardId=${cardId}`,
           );
           try {
             await updateCardKitCardForAuth({
               cfg,
               cardId,
-              card: buildAuthIdentityMismatchCard(brand),
+              card:
+                identity.reason === 'mismatch'
+                  ? buildAuthIdentityMismatchCard(brand)
+                  : buildAuthIdentityUnavailableCard(),
               sequence: ++seq,
               accountId,
             });

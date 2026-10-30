@@ -31,3 +31,7 @@ src/tools/docs/
 *.tgz
 *.tar.gz
 node_modules
+
+# Local live-acceptance harness build output
+.live/
+.live-*/

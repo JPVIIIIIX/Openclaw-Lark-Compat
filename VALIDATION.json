@@ -1,6 +1,6 @@
 {
   "date": "2026-10-30",
-  "status": "local_candidate_not_deployed",
+  "status": "live_acceptance_selected_features_passed",
   "upstream": {
     "repository": "https://github.com/larksuite/openclaw-lark",
     "commit": "dde0be3680d6fd5443cab426c8f4b3216266346a",
@@ -14,8 +14,8 @@
   "validationNode": "26.12.1",
   "localPackageVersion": "2026.7.9-local.20261030.1",
   "tests": {
-    "files": 55,
-    "passed": 450
+    "files": 56,
+    "passed": 456
   },
   "typecheck": "passed",
   "build": "passed",
@@ -57,19 +57,19 @@
     "diagnostics": []
   },
   "limits": [
-    "No live gateway started or restarted",
-    "No real Feishu messages or OAuth requests exercised",
-    "Current OpenClaw 2026.7.1-2 and installed plugin 2026.7.16 not changed",
-    "Source baseline is official GitHub main; its package version differs from installed npm version",
-    "No delayed footer-backfill polling or direct SQLite reads added"
+    "Only OpenClaw 2026.10.9 / Node.js 26.12.1 validated",
+    "Live acceptance limited to one Feishu tenant and one private chat",
+    "Docs and Bitable verified via plugin tool invocation, not natural-language model tool selection",
+    "Group chat, Sheets, Calendar, Tasks, attachments, long-running reconnect and token refresh not verified",
+    "See ACCEPTANCE.md for scoped results; no credentials or raw tenant logs published"
   ],
   "publication": {
     "repository": "https://github.com/JPVIIIIIX/Openclaw-Lark-Compat",
     "packageName": "openclaw-lark-compat",
     "npmPublished": false,
     "localPublicationChecks": {
-      "testFiles": 55,
-      "testsPassed": 450,
+      "testFiles": 56,
+      "testsPassed": 456,
       "typecheck": "passed",
       "lintErrors": 0,
       "lintWarnings": 26,
@@ -79,5 +79,19 @@
       "pnpm": "10.32.1"
     },
     "ciStatus": "See GitHub Actions for current remote status"
+  },
+  "liveAcceptance": {
+    "date": "2026-10-30",
+    "dm": "passed",
+    "modelStreamingCard": {
+      "status": "passed",
+      "incrementalUpdates": 16,
+      "sourceReplyAssociation": true,
+      "finalized": true
+    },
+    "oauth": "passed_after_identity_retry_fix",
+    "documentCreateReadAppend": "passed",
+    "bitableRecordCRUD": "passed",
+    "failedOutstandingInTestedScope": []
   }
 }
