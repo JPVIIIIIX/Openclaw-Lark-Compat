@@ -22,20 +22,24 @@ let cachedVersion: string | undefined;
 export function getPluginVersion(): string {
   if (cachedVersion) return cachedVersion;
 
-  try {
-    // 当前文件: src/core/version.ts → 向上两级到达项目根目录
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const packageJsonPath = join(__dirname, '..', '..', 'package.json');
-
-    const raw = readFileSync(packageJsonPath, 'utf8');
-    const pkg = JSON.parse(raw) as { version?: string };
-    cachedVersion = pkg.version ?? 'unknown';
-    return cachedVersion;
-  } catch {
-    cachedVersion = 'unknown';
-    return cachedVersion;
+  const moduleDir = dirname(fileURLToPath(import.meta.url));
+  // 打包后位于 dist/，源码位于 src/core/；只检查这两种已知布局。
+  for (const relativeRoot of ['..', '../..']) {
+    try {
+      const raw = readFileSync(join(moduleDir, relativeRoot, 'package.json'), 'utf8');
+      const pkg = JSON.parse(raw) as { name?: string; version?: unknown };
+      // 不把宿主或其他父目录包的版本误报为插件版本。
+      if (pkg.name === 'openclaw-lark-compat' && typeof pkg.version === 'string' && pkg.version.trim()) {
+        cachedVersion = pkg.version.trim();
+        return cachedVersion;
+      }
+    } catch {
+      // 当前候选文件不存在或无法解析时，继续检查另一个布局。
+    }
   }
+
+  cachedVersion = 'unknown';
+  return cachedVersion;
 }
 
 /**

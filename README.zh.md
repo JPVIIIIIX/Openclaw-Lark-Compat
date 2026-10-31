@@ -13,7 +13,7 @@
 
 - 当前验证宿主：**OpenClaw 2026.10.9**；验证运行时：**Node.js 26.12.1**。
 - 基于官方源码提交 [`dde0be3`](https://github.com/larksuite/openclaw-lark/commit/dde0be3680d6fd5443cab426c8f4b3216266346a)，命令授权迁移参考 [上游 PR #638](https://github.com/larksuite/openclaw-lark/pull/638)。
-- 本地验证：456 项测试通过，类型检查、格式检查和构建通过；ESLint 无错误。
+- 本地验证：460 项测试通过，类型检查、格式检查和构建通过；ESLint 无错误。
 - 5,120 组授权输入与旧版宿主实现比较，结果一致；隔离注册检查覆盖 39 个工具、4 个聊天命令，未发起网络请求。
 - 2026-10-30 真实验收通过：私聊收发、模型驱动的流式卡片、OAuth、文档创建/读取/追加、多维表格记录增删改查。详见[验收范围与限制](./ACCEPTANCE.md)。
 

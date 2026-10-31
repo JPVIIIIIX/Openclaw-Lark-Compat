@@ -1,6 +1,6 @@
 {
   "name": "openclaw-lark-compat",
-  "version": "2026.7.9-local.20261030.1",
+  "version": "2026.10.30",
   "description": "Compatibility adaptation of the official Lark/Feishu OpenClaw plugin for OpenClaw 2026.10.9",
   "type": "module",
   "exports": {

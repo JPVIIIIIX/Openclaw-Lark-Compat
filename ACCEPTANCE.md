@@ -21,3 +21,15 @@ Environment: OpenClaw 2026.10.9, Node.js 26.12.1, pnpm 10.32.1. An isolated host
 - Group messaging, Sheets, Calendar, Tasks, file/image transfer, token-refresh expiry, reconnect/soak tests and other host versions remain untested.
 - A nonfatal model-runtime cleanup warning was observed; successful model output and card finalization were independently verified. The diagnostic card's legacy version/path labels were not validated as authoritative runtime metadata.
 - No known outstanding failure in the checked flows; this is scoped acceptance, not a claim that every feature is production-ready. Remote CI status must be checked on the published branch.
+
+## Version metadata verification — 2026-10-31
+
+The compatibility package version is now `2026.10.30`. The host remains OpenClaw `2026.10.9`, Node.js `26.12.1`, and pnpm `10.32.1`.
+
+- The version helper previously assumed its source location under `src/core/`. After bundling into `dist/`, it looked outside the plugin for `package.json`, failed, and cached `unknown`. It now supports both layouts and validates the package name and version instead of accepting unrelated parent-package metadata.
+- The CLI diagnostic previously hardcoded `2026.2.10`. It now uses the same package-version helper as `/feishu doctor`. The existing User-Agent helper also receives the corrected version metadata.
+- Four regression cases run the emitted ESM helper in isolated Node processes: source layout, bundled layout, missing plugin metadata with an unrelated parent package, and a non-string version. The full suite passed: 460 tests across 57 files; typecheck, format, and build passed; lint remained at 0 errors / 26 existing warnings. After renumbering the package, the four version cases and build passed again.
+- On the B test machine, the rebuilt plugin was reloaded successfully. A newly generated `/feishu doctor` card and runtime package inspection both reported `2026.10.30`; the CLI diagnostic was also verified to use the package version. Existing cards retain their historical text.
+- The change is limited to version metadata and diagnostics; messaging, streaming, OAuth, permission, and model logic were not changed. Long-text streaming was not rerun for this metadata-only change. Prior live streaming evidence remains separate from this verification.
+
+These checks do not establish A/B parity, validate every feature, or replace end-to-end testing of document and Bitable operations on the B machine. No private configuration, account identifiers, credentials, or raw logs are included in this repository report.

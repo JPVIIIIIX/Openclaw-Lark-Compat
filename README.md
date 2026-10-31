@@ -13,7 +13,7 @@ This project adapts the [official Lark/Feishu OpenClaw plugin](https://github.co
 
 - Validated host: **OpenClaw 2026.10.9**, running on **Node.js 26.12.1**. Other host versions have not been validated.
 - Based on official commit [`dde0be3`](https://github.com/larksuite/openclaw-lark/commit/dde0be3680d6fd5443cab426c8f4b3216266346a). The authorization migration references [upstream PR #638](https://github.com/larksuite/openclaw-lark/pull/638).
-- Local checks: 456 passing tests; type checking, formatting, and build pass; ESLint reports no errors.
+- Local checks: 460 passing tests; type checking, formatting, and build pass; ESLint reports no errors.
 - 5,120 authorization cases match the previous host implementation. Isolated registration covers 39 tools and 4 chat commands with zero network attempts.
 - Live acceptance on 2026-10-30 passed for DM messaging, model-driven streaming cards, OAuth, document create/read/append, and Bitable record CRUD. See [acceptance scope and limitations](./ACCEPTANCE.md). Other features and host versions remain unverified.
 
